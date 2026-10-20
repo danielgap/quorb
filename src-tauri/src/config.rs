@@ -8,6 +8,8 @@ pub const ORB_SIZE_MAX: u32 = 80;
 pub const ORB_SIZE_DEFAULT: u32 = 48;
 pub const ACCENT_DEFAULT: &str = "#ff0036";
 /// Idiomas de la interfaz. Cualquier otro valor se sanea a `LOCALE_DEFAULT`.
+/// Contrato duplicado en `src/lib/types.ts` › `Locale`: si cambias uno, cambia el otro
+/// (la paridad se cubrirá con test junto a los catálogos de L2, #66).
 pub const LOCALES: [&str; 2] = ["es", "en"];
 pub const LOCALE_DEFAULT: &str = "es";
 
