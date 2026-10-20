@@ -111,7 +111,10 @@ test('CLI writes a reproducible inventory and --check detects drift', () => {
     assert.equal(gen.status, 0, gen.stderr);
     const doc = fs.readFileSync(path.join(dir, out), 'utf8');
     const sha = git(dir, 'rev-parse', 'HEAD');
-    assert.match(doc, new RegExp(`\`${sha}\``));
+    // Anchored to content-addressed source trees, not to a commit id.
+    assert.match(doc, new RegExp(`\`src/\` = \`${git(dir, 'rev-parse', 'HEAD:src')}\``));
+    assert.match(doc, new RegExp(`\`src-tauri/src/\` = \`${git(dir, 'rev-parse', 'HEAD:src-tauri/src')}\``));
+    assert.doesNotMatch(doc, new RegExp(sha));
     assert.match(doc, /src\/App\.tsx/);
     assert.match(doc, /\| 1 \| Abrir ajustes \|/);
     assert.match(doc, /\| 1 \| Hola mundo \|/);
@@ -134,6 +137,12 @@ test('CLI writes a reproducible inventory and --check detects drift', () => {
     const crlf = run(dir, '--check', '--out', out, '--ref', sha);
     assert.equal(crlf.status, 0, crlf.stderr);
     fs.writeFileSync(path.join(dir, out), doc);
+
+    // Squash/rebase rewrite commit ids but not source trees: --check still passes.
+    git(dir, 'commit', '-q', '--amend', '-m', 'squashed elsewhere');
+    assert.notEqual(git(dir, 'rev-parse', 'HEAD'), sha);
+    const squashed = run(dir, '--check', '--out', out);
+    assert.equal(squashed.status, 0, squashed.stderr);
 
     fs.writeFileSync(path.join(dir, 'src-tauri', 'src', 'lib.rs'), '\nconst M: &str = "Salir de Quorb";\n');
     git(dir, 'commit', '-q', '-am', 'shift');
