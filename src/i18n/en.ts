@@ -23,6 +23,7 @@ export const en = {
       title: 'Language',
       label: 'Language',
       hint: 'Applies right away in every window.',
+      error: 'Could not save the language',
     },
   },
 } satisfies Messages;

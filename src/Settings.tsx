@@ -1373,8 +1373,13 @@ export function Settings() {
 
   // El selector de Idioma guarda por la misma cola que el resto de Ajustes y
   // también lo adopta en el borrador (ver `changeLocale` en i18n/use-locale).
+  // Si el guardado falla, ese helper devuelve el borrador al locale del backend
+  // y aquí solo queda avisarlo: el selector ya refleja lo persistido.
+  const [localeError, setLocaleError] = useState<string | null>(null);
   const changeLocale = (loc: Locale) =>
-    applyLocaleChange(loc, { setDraft: setCfg, getConfig: api.getConfig, enqueueSave }).catch(console.error);
+    applyLocaleChange(loc, { setDraft: setCfg, getConfig: api.getConfig, enqueueSave })
+      .then(() => setLocaleError(null))
+      .catch((err: unknown) => setLocaleError(err instanceof Error ? err.message : String(err)));
 
   const loadSecrets = () => api.secretStatus().then(setSecrets).catch(console.error);
 
@@ -2229,6 +2234,12 @@ export function Settings() {
                     <option value="en">English</option>
                   </select>
                 </Field>
+                {localeError && (
+                  <div className="eg-field" role="alert">
+                    <span className="eg-field__label">{t(locale, 'settings.language.error')}</span>
+                    <small className="eg-field__hint">{localeError}</small>
+                  </div>
+                )}
               </Section>
             </div>
           )}

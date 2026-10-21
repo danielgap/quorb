@@ -58,6 +58,36 @@ describe('changeLocale', () => {
     });
     expect(draft).toBeNull();
   });
+
+  // Si el guardado falla, el backend manda: el borrador vuelve al locale que
+  // realmente persistió (el anterior) para que el selector y «Guardar cambios»
+  // no muestren o apliquen un idioma que nunca se guardó, y el error sube para
+  // que Ajustes lo muestre (P2 de #163).
+  it('reverts the draft to the backend locale and rethrows when the save fails', async () => {
+    let draft: AppConfig | null = config({ locale: 'es', refreshMinutes: 9 });
+    const backend = config({ locale: 'es', refreshMinutes: 7 });
+    await expect(changeLocale('en', {
+      setDraft: (update) => { draft = update(draft); },
+      getConfig: async () => backend,
+      enqueueSave: async () => { throw new Error('disk full'); },
+    })).rejects.toThrow('disk full');
+    expect(backend.locale).toBe('es');
+    expect(draft?.locale).toBe('es'); // reconciliado con el backend, no «en»
+    expect(draft?.refreshMinutes).toBe(9); // el resto del borrador se conserva
+  });
+
+  it('rethrows the save error even when the reconcile read also fails', async () => {
+    let draft: AppConfig | null = config({ locale: 'es' });
+    const getConfig = async (): Promise<AppConfig> => {
+      throw new Error('unreadable');
+    };
+    await expect(changeLocale('en', {
+      setDraft: (update) => { draft = update(draft); },
+      getConfig,
+      enqueueSave: async () => { throw new Error('disk full'); },
+    })).rejects.toThrow('disk full'); // el error original, no el de la relectura
+    expect(draft?.locale).toBe('en'); // sin relectura no hay reconciliación
+  });
 });
 
 describe('withLocale', () => {

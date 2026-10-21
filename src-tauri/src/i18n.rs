@@ -252,16 +252,17 @@ mod tests {
             codex_consent_message(Locale::Es, "Quorb", ".quorb"),
             CODEX_CONSENT_MESSAGE_ES
         );
-        // Con otro canal/carpeta, ambos textos sustituyen por las mismas anclas.
+        // Con otro canal/carpeta (identidad ficticia, no la retirada Dev),
+        // ambos textos sustituyen por las mismas anclas.
         for locale in [Locale::Es, Locale::En] {
-            let msg = codex_consent_message(locale, "Quorb Dev", ".quorb-dev");
+            let msg = codex_consent_message(locale, "Quorb Beta", ".quorb-beta");
             assert!(!msg.contains("solo para Quorb."), "{locale:?}: canal sin sustituir");
             assert!(!msg.contains("only for Quorb."), "{locale:?}: canal sin sustituir");
             assert!(!msg.contains("~/.quorb/"), "{locale:?}: carpeta sin sustituir");
-            assert!(msg.contains("~/.quorb-dev/tools/"), "{locale:?}: carpeta sustituida");
+            assert!(msg.contains("~/.quorb-beta/tools/"), "{locale:?}: carpeta sustituida");
         }
-        let en = codex_consent_message(Locale::En, "Quorb Dev", ".quorb-dev");
-        assert!(en.contains("only for Quorb Dev."), "inglés sin canal sustituido");
+        let en = codex_consent_message(Locale::En, "Quorb Beta", ".quorb-beta");
+        assert!(en.contains("only for Quorb Beta."), "inglés sin canal sustituido");
         assert!(en.contains("Install Codex now?"), "inglés sin pregunta final");
     }
 }

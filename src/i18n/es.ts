@@ -24,6 +24,7 @@ export const es = {
       title: 'Idioma',
       label: 'Idioma',
       hint: 'Se aplica al momento en todas las ventanas.',
+      error: 'No se pudo guardar el idioma',
     },
   },
 };
